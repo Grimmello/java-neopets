@@ -65,4 +65,70 @@ public class MonsterTest {
     Monster savedMonster = Monster.find(testMonster.getId());
     assertEquals(testPerson.getId(), savedMonster.getPersonId());
   }
+
+  @Test
+  public void monster_initializesWithHalfFullPlayLeveL(){
+    Monster testMonster = new Monster("Bubbles", 1);
+    assertEquals(testMonster.getSleepLevel(), (Monster.MAX_SLEEP_LEVEL / 2));
+  }
+
+  @Test
+  public void monster_initializesWithHalfFullFoodLevel(){
+    Monster testMonster = new Monster("Bubbles", 1);
+    assertEquals(testMonster.getfoodLevel(), (Monster.MAX_FOOD_LEVEL / 2));
+  }
+
+  @Test
+  public void isAlive_confirmsMonsterIsAliveIfAllLevelsAboveMin(){
+    Monster testMonster = new Monster("Bubbles", 1);
+    assertTrue(testMonster.isAlive());
+  }
+
+  @Test
+  public void depleteLevels_depletesAllLevels(){
+    Monster testMonster = new Monster("Bubbles", 1);
+    testMonster.depleteLevels();
+    assertEquals(testMonster.getfoodLevel(), (Monster.MAX_FOOD_LEVEL / 2) - 1);
+    assertEquals(testMonster.getSleepLevel(), (Monster.MAX_SLEEP_LEVEL / 2) - 1);
+    assertEquals(testMonster.getPlayLevel(), (Monster.MAX_PLAY_LEVEL / 2) - 1);
+  }
+
+  @Test
+  public void isAlive_recognizesMonsterIsDeadWhenLevelsReachMin(){
+    Monster testMonster = new Monster("Bubbles", 1);
+    for(int i = Monster.MIN_ALL_LEVELS; i <= Monster.MAX_FOOD_LEVEL; i++){
+      testMonster.depleteLevels();
+    }
+    assertEquals(false, testMonster.isAlive());
+  }
+
+  @Test
+  public void play_increasesPlayLevel(){
+    Monster testMonster = new Monster("Bubbles", 1);
+    testMonster.play();
+    assertTrue(testMonster.getPlayLevel() > (Monster.MAX_PLAY_LEVEL / 2));
+  }
+
+  @Test
+  public void sleep_increasesSleepLevel(){
+    Monster testMonster = new Monster("Bubbles", 1);
+    testMonster.sleep();
+    assertTrue(testMonster.getSleepLevel() > (Monster.MAX_SLEEP_LEVEL / 2));
+  }
+
+  @Test
+  public void feed_increasesFoodLevel(){
+    Monster testMonster = new Monster("Bubbles", 1);
+    testMonster.feed();
+    assertTrue(testMonster.getfoodLevel() > (Monster.MAX_FOOD_LEVEL / 2));
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void monster_foodLevelCannotGoBeyondMaxValue(){
+    Monster testMonster = new Monster("Bubbles", 1);
+    for(int i = Monster.MIN_ALL_LEVELS; i <= (Monster.MAX_FOOD_LEVEL); i++){
+      testMonster.feed();
+    }
+    assertTrue(testMonster.getfoodLevel() <= Monster.MAX_FOOD_LEVEL);
+  }
 }
