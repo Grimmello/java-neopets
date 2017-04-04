@@ -2,34 +2,24 @@ import org.sql2o.*;
 import java.util.*;
 import java.sql.Timestamp;
 
-public class Monster {
-  private String name;
-  private int id;
-  private int personId;
-  private int foodLevel;
-  private int sleepLevel;
-  private int playLevel;
-  private Timestamp birthday;
-  private Timestamp lastSlept;
-  private Timestamp lastAte;
-  private Timestamp lastPlayed;
+public abstract class Monster {
+  public String name;
+  public int id;
+  public int personId;
+  public int foodLevel;
+  public int sleepLevel;
+  public int playLevel;
+  public Timestamp birthday;
+  public Timestamp lastSlept;
+  public Timestamp lastAte;
+  public Timestamp lastPlayed;
 
-  private Timer timer;
+  public Timer timer;
 
   public static final int MAX_FOOD_LEVEL = 3;
   public static final int MAX_SLEEP_LEVEL = 8;
   public static final int MAX_PLAY_LEVEL = 12;
   public static final int MIN_ALL_LEVELS = 0;
-
-  public Monster(String name, int personId) {
-    this.name = name;
-    this.personId = personId;
-    timer = new Timer();
-
-    playLevel = MAX_PLAY_LEVEL / 2;
-    sleepLevel = MAX_SLEEP_LEVEL / 2;
-    foodLevel = MAX_FOOD_LEVEL / 2;
-  }
 
   public String getName() {
     return name;
@@ -47,7 +37,7 @@ public class Monster {
     return sleepLevel;
   }
 
-  public int getfoodLevel(){
+  public int getFoodLevel(){
     return foodLevel;
   }
 
@@ -141,22 +131,6 @@ public class Monster {
           .executeUpdate();
       }
       foodLevel++;
-    }
-  }
-
-  public static List<Monster> all() {
-    String sql = "SELECT * FROM monsters";
-    try(Connection con = DB.sql2o.open()) {
-      return con.createQuery(sql).executeAndFetch(Monster.class);
-    }
-  }
-
-  public static Monster find(int id){
-    try(Connection con = DB.sql2o.open()){
-      String sql = "SELECT * FROM monsters WHERE id=:id";
-      return con.createQuery(sql)
-        .addParameter("id", id)
-        .executeAndFetchFirst(Monster.class);
     }
   }
 
