@@ -6,11 +6,13 @@ public class WaterMonster extends Monster{
   private int waterLevel;
 
   public static final int MAX_WATER_LEVEL = 8;
+  public static final String DATABASE_TYPE = "water";
 
   public WaterMonster(String name, int personId) {
     this.name = name;
     this.personId = personId;
     timer = new Timer();
+    type = DATABASE_TYPE;
 
     playLevel = MAX_PLAY_LEVEL / 2;
     sleepLevel = MAX_SLEEP_LEVEL / 2;
@@ -52,7 +54,7 @@ public class WaterMonster extends Monster{
 
   public static List<WaterMonster> all(){
     try(Connection con = DB.sql2o.open()){
-      String sql = "SELECT * FROM monsters;";
+      String sql = "SELECT * FROM monsters WHERE type='water';";
       return con.createQuery(sql).executeAndFetch(WaterMonster.class);
     }
   }

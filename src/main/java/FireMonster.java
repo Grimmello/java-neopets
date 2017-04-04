@@ -6,11 +6,13 @@ public class FireMonster extends Monster{
   private int fireLevel;
 
   public static final int MAX_FIRE_LEVEL = 10;
+  public static final String DATABASE_TYPE = "fire";
 
   public FireMonster(String name, int personId) {
     this.name = name;
     this.personId = personId;
     timer = new Timer();
+    type = DATABASE_TYPE;
 
     playLevel = MAX_PLAY_LEVEL / 2;
     sleepLevel = MAX_SLEEP_LEVEL / 2;
@@ -52,7 +54,7 @@ public class FireMonster extends Monster{
 
   public static List<FireMonster> all(){
     try(Connection con = DB.sql2o.open()){
-      String sql = "SELECT * FROM monsters;";
+      String sql = "SELECT * FROM monsters WHERE type='fire';";
       return con.createQuery(sql).executeAndFetch(FireMonster.class);
     }
   }
