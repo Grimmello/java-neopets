@@ -1,5 +1,6 @@
 import org.junit.*;
 import static org.junit.Assert.*;
+import org.sql2o.*;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.text.DateFormat;
@@ -10,28 +11,35 @@ public class FireMonsterTest {
   public DatabaseRule database = new DatabaseRule();
 
   @Test
-  public void monster_initializesCorrectly(){
-    FireMonster testFireMonster = new FireMonster("Bob", 1);
-    assertTrue(testFireMonster instanceof FireMonster);
+  public void fireMonster_instantiatesCorrectly_true() {
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    assertEquals(true, testFireMonster instanceof FireMonster);
   }
 
   @Test
-  public void getName_returnsFireMonsterName() {
-    FireMonster testFireMonster = new FireMonster("Bob", 1);
-    assertEquals("Bob", testFireMonster.getName());
+  public void FireMonster_instantiatesWithName_String() {
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    assertEquals("Bubbles", testFireMonster.getName());
   }
 
   @Test
-  public void getPersonId_returnsPersonId_1() {
-    FireMonster testFireMonster = new FireMonster("Bob", 1);
+  public void FireMonster_instantiatesWithPersonId_int() {
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     assertEquals(1, testFireMonster.getPersonId());
   }
 
   @Test
   public void equals_returnsTrueIfNameAndPersonIdAreSame_true() {
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
-    FireMonster otherFireMonster = new FireMonster("Bubbles", 1);
-    assertTrue(testFireMonster.equals(otherFireMonster));
+    FireMonster anotherFireMonster = new FireMonster("Bubbles", 1);
+    assertTrue(testFireMonster.equals(anotherFireMonster));
+  }
+
+  @Test
+  public void save_successfullyAddsFireMonsterToDatabase_List() {
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    testFireMonster.save();
+    assertTrue(FireMonster.all().get(0).equals(testFireMonster));
   }
 
   @Test
@@ -43,102 +51,160 @@ public class FireMonsterTest {
   }
 
   @Test
-  public void all_returnsAllInstances(){
+  public void all_returnsAllInstancesOfFireMonster_true() {
     FireMonster firstFireMonster = new FireMonster("Bubbles", 1);
     firstFireMonster.save();
-    FireMonster secondFireMonster = new FireMonster("Spud", 1);
+    FireMonster secondFireMonster = new FireMonster("Spud", 3);
     secondFireMonster.save();
-    assertTrue(FireMonster.all().get(0).equals(firstFireMonster));
-    assertTrue(FireMonster.all().get(1).equals(secondFireMonster));
+    assertEquals(true, FireMonster.all().get(0).equals(firstFireMonster));
+    assertEquals(true, FireMonster.all().get(1).equals(secondFireMonster));
   }
 
   @Test
-  public void find_returnsCorrectObject(){
-    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
-    testFireMonster.save();
-    assertEquals(testFireMonster, FireMonster.find(testFireMonster.getId()));
+  public void find_returnsFireMonsterWithSameId_secondFireMonster() {
+    FireMonster firstFireMonster = new FireMonster("Bubbles", 1);
+    firstFireMonster.save();
+    FireMonster secondFireMonster = new FireMonster("Spud", 3);
+    secondFireMonster.save();
+    assertEquals(FireMonster.find(secondFireMonster.getId()), secondFireMonster);
   }
 
   @Test
-  public void save_savesPersonIntoDB(){
+  public void save_savesPersonIdIntoDB_true() {
     Person testPerson = new Person("Henry", "henry@henry.com");
     testPerson.save();
     FireMonster testFireMonster = new FireMonster("Bubbles", testPerson.getId());
     testFireMonster.save();
     FireMonster savedFireMonster = FireMonster.find(testFireMonster.getId());
-    assertEquals(testPerson.getId(), savedFireMonster.getPersonId());
+    assertEquals(savedFireMonster.getPersonId(), testPerson.getId());
   }
 
   @Test
-  public void monster_initializesWithHalfFullPlayLeveL(){
+  public void fireMonster_instantiatesWithHalfFullPlayLevel(){
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    assertEquals(testFireMonster.getPlayLevel(), (FireMonster.MAX_PLAY_LEVEL / 2));
+  }
+
+  @Test
+  public void fireMonster_instantiatesWithHalfFullSleepLevel(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     assertEquals(testFireMonster.getSleepLevel(), (FireMonster.MAX_SLEEP_LEVEL / 2));
   }
 
   @Test
-  public void monster_initializesWithHalfFullFoodLevel(){
+  public void fireMonster_instantiatesWithHalfFullFoodLevel(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     assertEquals(testFireMonster.getFoodLevel(), (FireMonster.MAX_FOOD_LEVEL / 2));
   }
 
   @Test
-  public void isAlive_confirmsFireMonsterIsAliveIfAllLevelsAboveMin(){
+  public void play_increasesPlayLevelValue_(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
-    assertTrue(testFireMonster.isAlive());
+    assertEquals(testFireMonster.getFoodLevel(), (FireMonster.MAX_FOOD_LEVEL / 2));
   }
 
   @Test
-  public void depleteLevels_depletesAllLevels(){
+  public void isAlive_confirmsFireMonsterIsAliveIfAllLevelsAboveMinimum_true(){
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    assertEquals(testFireMonster.isAlive(), true);
+  }
+
+  @Test
+  public void depleteLevels_reducesAllLevels(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     testFireMonster.depleteLevels();
     assertEquals(testFireMonster.getFoodLevel(), (FireMonster.MAX_FOOD_LEVEL / 2) - 1);
     assertEquals(testFireMonster.getSleepLevel(), (FireMonster.MAX_SLEEP_LEVEL / 2) - 1);
     assertEquals(testFireMonster.getPlayLevel(), (FireMonster.MAX_PLAY_LEVEL / 2) - 1);
+    assertEquals(testFireMonster.getFireLevel(), (FireMonster.MAX_FIRE_LEVEL / 2) - 1);
   }
 
   @Test
-  public void isAlive_recognizesFireMonsterIsDeadWhenLevelsReachMin(){
+  public void isAlive_recognizesFireMonsterIsDeadWhenLevelsReachMinimum_false(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     for(int i = FireMonster.MIN_ALL_LEVELS; i <= FireMonster.MAX_FOOD_LEVEL; i++){
       testFireMonster.depleteLevels();
     }
-    assertEquals(false, testFireMonster.isAlive());
+    assertEquals(testFireMonster.isAlive(), false);
   }
 
   @Test
-  public void play_increasesPlayLevel(){
+  public void play_increasesFireMonsterPlayLevel(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     testFireMonster.play();
     assertTrue(testFireMonster.getPlayLevel() > (FireMonster.MAX_PLAY_LEVEL / 2));
   }
 
   @Test
-  public void sleep_increasesSleepLevel(){
+  public void sleep_increasesFireMonsterSleepLevel(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     testFireMonster.sleep();
     assertTrue(testFireMonster.getSleepLevel() > (FireMonster.MAX_SLEEP_LEVEL / 2));
   }
 
   @Test
-  public void feed_increasesFoodLevel(){
+  public void feed_increasesFireMonsterFoodLevel(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     testFireMonster.feed();
     assertTrue(testFireMonster.getFoodLevel() > (FireMonster.MAX_FOOD_LEVEL / 2));
   }
 
   @Test
-  public void monster_foodLevelCannotGoBeyondMaxValue(){
+  public void fireMonster_foodLevelCannotGoBeyondMaxValue(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     for(int i = FireMonster.MIN_ALL_LEVELS; i <= (FireMonster.MAX_FOOD_LEVEL); i++){
       try {
         testFireMonster.feed();
-      } catch (UnsupportedOperationException exception) {}
+      } catch (UnsupportedOperationException exception){ }
     }
     assertTrue(testFireMonster.getFoodLevel() <= FireMonster.MAX_FOOD_LEVEL);
   }
 
+  @Test(expected = UnsupportedOperationException.class)
+  public void feed_throwsExceptionIfFoodLevelIsAtMaxValue(){
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    for(int i = FireMonster.MIN_ALL_LEVELS; i <= (FireMonster.MAX_FOOD_LEVEL); i++){
+      testFireMonster.feed();
+    }
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void play_throwsExceptionIfPlayLevelIsAtMaxValue(){
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    for(int i = FireMonster.MIN_ALL_LEVELS; i <= (FireMonster.MAX_PLAY_LEVEL); i++){
+      testFireMonster.play();
+    }
+  }
+
   @Test
-  public void monster_sleepLevelCannotGoBeyondMaxValue(){
+  public void fireMonster_playLevelCannotGoBeyondMaxValue(){
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    for(int i = FireMonster.MIN_ALL_LEVELS; i <= (FireMonster.MAX_PLAY_LEVEL); i++){
+      try {
+        testFireMonster.play();
+      } catch (UnsupportedOperationException exception){ }
+    }
+    assertTrue(testFireMonster.getPlayLevel() <= FireMonster.MAX_PLAY_LEVEL);
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void sleep_throwsExceptionIfSleepLevelIsAtMaxValue(){
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    for(int i = FireMonster.MIN_ALL_LEVELS; i <= (FireMonster.MAX_SLEEP_LEVEL); i++){
+      testFireMonster.sleep();
+    }
+  }
+
+  @Test
+  public void save_assignsIdToObject() {
+    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    testFireMonster.save();
+    FireMonster savedFireMonster = FireMonster.all().get(0);
+    assertEquals(testFireMonster.getId(), savedFireMonster.getId());
+  }
+
+  @Test
+  public void fireMonster_sleepLevelCannotGoBeyondMaxValue(){
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     for(int i = FireMonster.MIN_ALL_LEVELS; i <= (FireMonster.MAX_SLEEP_LEVEL); i++){
       try {
@@ -152,86 +218,93 @@ public class FireMonsterTest {
   public void save_recordsTimeOfCreationInDatabase() {
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     testFireMonster.save();
-    Timestamp rightNow = new Timestamp(new Date().getTime());
     Timestamp savedFireMonsterBirthday = FireMonster.find(testFireMonster.getId()).getBirthday();
+    Timestamp rightNow = new Timestamp(new Date().getTime());
     assertEquals(rightNow.getDay(), savedFireMonsterBirthday.getDay());
   }
 
   @Test
-  public void sleep_recordsTimeLastSleptInDatabase(){
+  public void sleep_recordsTimeLastSleptInDatabase() {
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     testFireMonster.save();
     testFireMonster.sleep();
-    Timestamp saveFireMonsterLastSlept = FireMonster.find(testFireMonster.getId()).getLastSlept();
+    Timestamp savedFireMonsterLastSlept = FireMonster.find(testFireMonster.getId()).getLastSlept();
     Timestamp rightNow = new Timestamp(new Date().getTime());
-    assertEquals(DateFormat.getDateTimeInstance().format(rightNow), DateFormat.getDateTimeInstance().format(saveFireMonsterLastSlept));
+    assertEquals(DateFormat.getDateTimeInstance().format(rightNow), DateFormat.getDateTimeInstance().format(savedFireMonsterLastSlept));
   }
 
   @Test
-  public void feed_recordsTimeLastAteInDatabase(){
+  public void feed_recordsTimeLastAteInDatabase() {
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     testFireMonster.save();
     testFireMonster.feed();
-    Timestamp saveFireMonsterLastAte = FireMonster.find(testFireMonster.getId()).getLastAte();
+    Timestamp savedFireMonsterLastAte = FireMonster.find(testFireMonster.getId()).getLastAte();
     Timestamp rightNow = new Timestamp(new Date().getTime());
-    assertEquals(DateFormat.getDateTimeInstance().format(rightNow), DateFormat.getDateTimeInstance().format(saveFireMonsterLastAte));
+    assertEquals(DateFormat.getDateTimeInstance().format(rightNow), DateFormat.getDateTimeInstance().format(savedFireMonsterLastAte));
   }
 
   @Test
-  public void play_recordsTimeLastPlayed(){
+  public void play_recordsTimeLastPlayedInDatabase() {
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     testFireMonster.save();
     testFireMonster.play();
-    Timestamp saveFireMonsterLastPlayed = FireMonster.find(testFireMonster.getId()).getLastPlayed();
+    Timestamp savedFireMonsterLastPlayed = FireMonster.find(testFireMonster.getId()).getLastPlayed();
     Timestamp rightNow = new Timestamp(new Date().getTime());
-    assertEquals(DateFormat.getDateTimeInstance().format(rightNow), DateFormat.getDateTimeInstance().format(saveFireMonsterLastPlayed));
+    assertEquals(DateFormat.getDateTimeInstance().format(rightNow), DateFormat.getDateTimeInstance().format(savedFireMonsterLastPlayed));
   }
 
   @Test
-  public void timer_executesDepleteLevelsMethod(){
+  public void timer_executesDepleteLevelsMethod() {
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     int firstPlayLevel = testFireMonster.getPlayLevel();
     testFireMonster.startTimer();
-    try{
+    try {
       Thread.sleep(6000);
-    } catch(InterruptedException exception){}
+    } catch (InterruptedException exception){}
     int secondPlayLevel = testFireMonster.getPlayLevel();
     assertTrue(firstPlayLevel > secondPlayLevel);
   }
 
   @Test
-  public void timer_haltsAfterFireMonsterDies(){
+  public void timer_haltsAfterFireMonsterDies() {
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
     testFireMonster.startTimer();
-    try{
+    try {
       Thread.sleep(6000);
-    } catch(InterruptedException exception){}
+    } catch (InterruptedException exception){}
     assertFalse(testFireMonster.isAlive());
     assertTrue(testFireMonster.getFoodLevel() >= 0);
   }
 
   @Test
+  public void fireMonster_instantiatesWithHalfFullFireLevel(){
+    FireMonster testFireMonster = new FireMonster("Smokey", 1);
+    assertEquals(testFireMonster.getFireLevel(), (FireMonster.MAX_FIRE_LEVEL / 2));
+  }
+
+  @Test
   public void kindling_increasesFireMonsterFireLevel(){
-    FireMonster testFireMonster = new FireMonster("Bubbles", 1);
+    FireMonster testFireMonster = new FireMonster("Smokey", 1);
     testFireMonster.kindling();
     assertTrue(testFireMonster.getFireLevel() > (FireMonster.MAX_FIRE_LEVEL / 2));
   }
 
-  @Test(expected = UnsupportedOperationException.class)
-  public void kindling_throwsExceptionIfFireLevelIsAtMax(){
+  @Test
+  public void kindling_recordsTimeLastKindlingInDatabase() {
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
-    for(int i = FireMonster.MIN_ALL_LEVELS; i <= (FireMonster.MAX_FIRE_LEVEL); i++){
-      testFireMonster.kindling();
-    }
+    testFireMonster.save();
+    testFireMonster.kindling();
+    Timestamp savedFireMonsterLastKindling = FireMonster.find(testFireMonster.getId()).getLastKindling();
+    Timestamp rightNow = new Timestamp(new Date().getTime());
+    assertEquals(DateFormat.getDateTimeInstance().format(rightNow), DateFormat.getDateTimeInstance().format(savedFireMonsterLastKindling));
   }
 
   @Test
-  public void depleteLevels_reducesAllLevels(){
+  public void delete_deletesFireMonster_true() {
     FireMonster testFireMonster = new FireMonster("Bubbles", 1);
-    testFireMonster.depleteLevels();
-    assertEquals(testFireMonster.getFoodLevel(), (FireMonster.MAX_FOOD_LEVEL / 2) - 1);
-    assertEquals(testFireMonster.getSleepLevel(), (FireMonster.MAX_SLEEP_LEVEL / 2) - 1);
-    assertEquals(testFireMonster.getPlayLevel(), (FireMonster.MAX_PLAY_LEVEL / 2) - 1);
-    assertEquals(testFireMonster.getFireLevel(), (FireMonster.MAX_FIRE_LEVEL / 2) - 1);
+    testFireMonster.save();
+    testFireMonster.delete();
+    assertEquals(null, FireMonster.find(testFireMonster.getId()));
   }
+
 }
